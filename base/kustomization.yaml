@@ -1,0 +1,5 @@
+resources:
+  #- mediawiki-namespace
+  - mediawiki-storage
+  - mediawiki-database
+  - mediawiki-application

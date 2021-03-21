@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  mediawiki-deployment
+  labels:
+    app:  mediawiki
+spec:
+  selector:
+    matchLabels:
+      app: mediawiki
+  replicas: 4
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  mediawiki
+    spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name:  mediawiki
+        image:  bitnami/mediawiki:latest
+        securityContext:
+          runAsUser: 0
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: MEDIAWIKI_DATABASE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mediawiki-configmap
+              key: mysql_user
+        - name: MEDIAWIKI_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: mysql-root-password
+              name: secret-mediawiki
+        - name: MEDIAWIKI_DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              key: mysql_database
+              name: mediawiki-configmap
+        - name: MEDIAWIKI_DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: mysql_host
+              name: mediawiki-configmap
+        ports:
+        - containerPort:  8080
+          name:  http
+        volumeMounts:
+        - name: mediawiki-data
+          mountPath: /bitnami/mediawiki
+      volumes:
+        - name: mediawiki-data
+          persistentVolumeClaim:
+            claimName: mediawiki-pvc
+      restartPolicy: Always

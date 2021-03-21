@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+bases:
+  - ../../base
+resources:
+  - ./namespace.yaml
+
+namespace: prod
+namePrefix: prod-
+
+configMapGenerator:
+  - name: mediawiki-configmap
+    literals:
+      - "mysql_host=prod-mysql-svc.prod.svc.cluster.local"
+      - "mysql_database=mediawik"
+      - "mysql_user=mediawik"
+
+
+patchesStrategicMerge:
+  - mediawiki-application/deployment.yaml
